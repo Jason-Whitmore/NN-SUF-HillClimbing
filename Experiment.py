@@ -1,13 +1,9 @@
 from time import time
 from AgentREINFORCE import AgentREINFORCE
 from Maze import Maze
-from Utility import Utility
 
 from NNSUF import NNSUF
 from KOSUF import KOSUF
-
-import gymnasium as gym
-
 
 class Experiment:
     """

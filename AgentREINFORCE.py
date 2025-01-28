@@ -2,14 +2,28 @@ import numpy as np
 from Utility import Utility
 
 class AgentREINFORCE:
+    """
+    Defines a RL agent that uses the REINFORCE algorithm to learn an optimal policy.
+    """
 
     def __init__(self, state_size: int, action_count: int, hidden_layer_size: int, discount_factor: float, policy_lr: float):
+        """
+        Initializes the agent.
+
+        state_size: The size of the state vector
+
+        action_count: The number of actions in the action set
+
+        hidden_layer_size: The size of the hidden layers in the policy neural network
+
+        discount_factor: The hyperparameter that controls how future rewards are weighted. This value is in [0, 1).
+
+        policy_lr: The learning rate for the policy
+        """
         
         #Basic hyperparameters
         self.hidden_layer_size: int = hidden_layer_size
         self.policy_lr: float = policy_lr
-
-        
 
         #MDP variables
         self.state_size: int = state_size
@@ -32,6 +46,9 @@ class AgentREINFORCE:
         self.policy_function_params: list["ndarray"] = self.create_policy_function_params()
     
     def episode_end_reset(self):
+        """
+        Clears algorithm data that was collected from an old episode in anticipation of a new episode.
+        """
         self.current_timestep = 0
 
         self.episode_states = []
@@ -43,6 +60,9 @@ class AgentREINFORCE:
 
 
     def create_policy_function_params(self) -> list["ndarray"]:
+        """
+        Creates the policy neural network parameters
+        """
         params: list["ndarray"] = []
 
         #First layer
@@ -67,10 +87,16 @@ class AgentREINFORCE:
         return params
 
     def set_current_state(self, current_state: "ndarray"):
+        """
+        Sets the current state
+        """
         self.current_state = current_state
 
 
     def REINFORCE_update(self):
+        """
+        Performs the REINFORCE parameter update. This is the code which helps the agent learn.
+        """
 
         eps: float = 1e-4
 
@@ -106,6 +132,14 @@ class AgentREINFORCE:
         self.episode_end_reset()
 
     def policy_function_predict(self, state: "ndarray") -> "ndarray":
+        """
+        Gets the output of the policy function as well as other important information.
+
+        state: The input state vector
+
+        Returns: The action probability distribution, the input vectors for each layer,
+        and the output vectors for each layer before the activation function is applied.
+        """
 
         layer_inputs = []
         pre_activation_vectors = []
@@ -134,6 +168,19 @@ class AgentREINFORCE:
 
 
     def policy_gradient(self, state: "ndarray", action: int, input_vectors, pre_activation_vectors) -> "list[ndarray]":
+        """
+        Gets the policy gradient of the action with respect to the parameters.
+
+        state: The input state
+
+        action: The input action. The gradient is the direction which increases the probability of this action the most
+
+        input_vectors: List of input vectors for each layer
+
+        pre_activation_vectors: List of output vectors for each layer before the activation functions are applied.
+
+        Returns: The gradient
+        """
         params: list["ndarray"] = self.policy_function_params
         gradient: list["ndarray"] = [None for i in range(len(params))]
         dObj_dY: list["ndarray"] = [None for i in range(int(len(params) / 2))]
@@ -201,6 +248,16 @@ class AgentREINFORCE:
         return gradient
 
     def policy_gradient_simple(self, state: "ndarray", action: int) -> "list[ndarray]":
+        """
+        Gets the policy gradient of the action with respect to the parameters.
+
+        state: The input state
+
+        action: The input action. The gradient is the direction which increases the probability of this action the most
+
+        Returns: The gradient
+        """
+
         params = self.policy_function_params
 
         pre_activation_vectors = [None for i in range(int(len(params) / 2))]
@@ -232,6 +289,13 @@ class AgentREINFORCE:
 
     @staticmethod
     def select_action(prob_distribution: "ndarray") -> int:
+        """
+        Selects the action based on the probability distribution
+
+        prob_distribution: The distribution to select an action from.
+
+        Returns: The selected action
+        """
         n = np.random.random()
 
         index = 0
@@ -245,6 +309,18 @@ class AgentREINFORCE:
         return index
 
     def step(self, reward: float, next_state: "ndarray", done: bool) -> int:
+        """
+        Performs the agent's part of the interaction loop. This involves selecting an action and recording the agent inputs
+        into agent memory.
+
+        reward: The reward the agent experiences
+
+        next_state: The next state in the trajectory
+
+        done: The signal that the episode has ended.
+
+        Returns: The action selected by the agent
+        """
         prob_distribution, p_input_vectors, p_pre_activation_vectors = self.policy_function_predict(self.current_state)
 
         self.episode_probs.append(prob_distribution)
