@@ -1,6 +1,6 @@
 import numpy as np
 
-class ObservationStacker:
+class KOSUF:
 
     def __init__(self, k: int, obs_size: int, action_count: int):
         self.k = k

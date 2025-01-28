@@ -3,6 +3,7 @@ import math
 
 
 dtype="float64"
+
 class Utility:
 
     @staticmethod
@@ -78,37 +79,11 @@ class Utility:
         return y
     
     @staticmethod
-    def leaky_relu(x: "ndarray", alpha=0.1) -> "ndarray":
-        y: "ndarray" = np.zeros(len(x), dtype=dtype)
-
-        for i in range(len(y)):
-            if x[i] < 0:
-                y[i] = x[i] * alpha
-            else:
-                y[i] = x[i]
-
-        return y
-    
-    @staticmethod
-    def leaky_relu_prime(x: "ndarray", alpha=0.1) -> "ndarray":
-        y: "ndarray" = np.zeros(len(x), dtype=dtype)
-
-        for i in range(len(y)):
-            if x[i] < 0:
-                y[i] = alpha
-            else:
-                y[i] = 1
-
-        return y
-    
-    @staticmethod
     def hidden_activation(x: "ndarray") -> "ndarray":
-        #return Utility.leaky_relu(x)
         return Utility.tanh(x)
 
     @staticmethod
     def hidden_activation_prime(x: "ndarray") -> "ndarray":
-        #return Utility.leaky_relu_prime(x)
         return Utility.tanh_prime(x)
     
     
@@ -191,13 +166,8 @@ class Utility:
         s = 0
 
         for i in range(len(l)):
-
-            #print("Layer shape: " + str(l[i].shape) + ", size: " + str(np.prod(l[i].shape) * unit_size))
-
             s += np.prod(l[i].shape) * unit_size
 
-        #print("Total: " + str(s))
-        #exit()
         return int(s)
     
     @staticmethod
@@ -209,14 +179,6 @@ class Utility:
             r.append(l[i].shape)
 
         return r
-    
-    @staticmethod
-    def write_to_shared_memory(source: "list[ndarray]", shared_memory: "shm"):
-        return
-    
-    @staticmethod
-    def read_from_shared_memory(shared_memory: "buffer", shapes: "list[Tuple]") -> "list[ndarray]":
-        return None
 
     @staticmethod
     def add_to_queue(queue: list, item: float, max_len=3):
@@ -224,11 +186,6 @@ class Utility:
 
         while len(queue) > max_len:
             queue.pop(0)
-
-    @staticmethod
-    def has_converged(queue: list, threshold: float) -> bool:
-
-        pass
 
     @staticmethod
     def create_new_params(current_params, epsilon: float):

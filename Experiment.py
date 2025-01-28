@@ -1,5 +1,4 @@
 from time import time
-import AgentREINFORCE
 from AgentREINFORCE import AgentREINFORCE
 from Maze import Maze
 from Utility import Utility
@@ -11,14 +10,26 @@ import gymnasium as gym
 
 
 class Experiment:
+    """
+    Defines the Experiment class. Contains RL components and functions to train and evaluate an agent/SUF
+    """
     
     def __init__(self, env, state_update_function, agent):
+        """
+        Initializing the Experiment class.
+        """
         self.env = env
         self.state_update_function = state_update_function
         self.agent = agent
 
     def get_MCSV(self, n: int, discount_factor=0.99) -> float:
-        
+        """
+        Returns the Monte Carlo Start Value
+
+        n: The number of episodes of data to collect
+
+        discount_factor: The hyperparameter that controls how future rewards are weighted. This value is in [0, 1).
+        """
         sum = 0
 
         for i in range(n):
@@ -28,6 +39,13 @@ class Experiment:
         return sum / n
 
     def run_episode(self, discount_factor=0.99, train=False) -> float:
+        """
+        Returns the discounted return and number of timesteps from an episode run under the current policy.
+
+        discount_factor: The hyperparameter that controls how future rewards are weighted. This value is in [0, 1).
+
+        train: If true, agent will adjust parameters to improve performance. If false, no agent parameters are changed.
+        """
 
         total_return: float = 0
         start_obs, dummy = env.reset()
@@ -66,6 +84,14 @@ class Experiment:
 
 
     def train_mdp_agent(self, timestep_limit: int, discount_factor: float=0.99):
+        """
+        Trains the agent for potentially many episodes
+
+        timestep_limit: The approximate number of timesteps that the agent will train over. The actual number of timesteps trained
+        is likely higher than this amount.
+
+        discount_factor: The hyperparameter that controls how future rewards are weighted. This value is in [0, 1).
+        """
         total_timesteps = 0
 
         while total_timesteps < timestep_limit:
@@ -74,7 +100,23 @@ class Experiment:
             total_timesteps += timesteps
 
     def run_experiment(self, num_iterations: int, timesteps_per_iteration: int, discount_factor: float, epsilon: float, mcsv_samples: int, mcsv_threshold: float):
+        """
+        Runs the experiment and outputs training progress to standard out
 
+        num_iterations: The number of times the NN-SUF is updated in the hill climbing algorithm
+
+        timesteps_per_iteration: The approximate number of timesteps the agent will train per hill climbing algorithm iteration.
+        The actual number of timesteps trained is likely higher than this amount.
+
+        discount_factor: The hyperparameter that controls how future rewards are weighted. This value is in [0, 1).
+
+        epsilon: Controls the bounds of the uniform random distribution that adjusts the NN-SUF parameters. 
+        Parameter changes are in range [-epsilon, epsilon]
+
+        mcsv_samples: The number of episodes collected when calculating MCSV. This number is used to optimize the NN-SUF's parameters.
+
+        mcsv_threshold: If the MCSV reaches this threshold, the experiment is stopped early.
+        """
         for iteration in range(num_iterations):
             start_time = time()
             self.train_mdp_agent(timesteps_per_iteration, discount_factor)
@@ -86,35 +128,9 @@ class Experiment:
             if mcsv > mcsv_threshold:
                 break
             
-            if self.state_update_function is Converter:
+            if self.state_update_function is NNSUF:
                 self.state_update_function.set_current_param_performance(mcsv)
                 self.state_update_function.create_new_params(epsilon)
-
-    def run_experiment_hill_climbing(self, num_iterations: int, epsilon: float, discount_factor: float, mcsv_samples: int, mcsv_threshold: float):
-
-        best_agent_params = Utility.clone_list(self.agent.policy_function_params)
-        best_update_function_params = Utility.clone_list(self.state_update_function.update_function_params)
-        best_mcsv: float = float("-inf")
-
-        for iteration in range(num_iterations):
-
-            mcsv: float = self.get_MCSV(mcsv_samples)
-
-            print("Iteration " + str(iteration) + ": MCSV: " + str(mcsv))
-
-            if mcsv > best_mcsv:
-                best_mcsv = mcsv
-                best_agent_params = Utility.clone_list(self.agent.policy_function_params)
-                best_update_function_params = Utility.clone_list(self.state_update_function.update_function_params)
-
-            if mcsv > mcsv_threshold:
-                return
-            
-            new_agent_params = Utility.create_new_params(current_params=best_agent_params, epsilon=epsilon)
-            new_update_function_params = Utility.create_new_params(current_params=best_update_function_params, epsilon=epsilon)
-
-            self.agent.policy_function_params = Utility.clone_list(new_agent_params)
-            self.state_update_function.update_function_params = Utility.clone_list(new_update_function_params)
 
 
 
@@ -126,25 +142,26 @@ num_converter_iterations: int = 50 #50 for nn-suf, 15 for kth order methods
 state_size: int = 50 #{1, 2, 3, 4, 5}, 3 for epsilon experiment
 interval: int = 10 * 1000 * 1000 #10_000_000
 epsilon: float = 0 #{1e-1, 1e-2, 1e-3, 1e-4, 1e-5}, 1e-3 for state vector size experiment
-converter_hidden_layer_size: int = 50 #30
+nn_suf_hidden_layer_size: int = 50 #30
 
 #Agent Hyperparameters
 agent_hidden_layer_size: int = 24 #24
-discount: float = .99 #.99
+discount_factor: float = .99 #.99
 policy_lr: float = 1e-4 #1e-4
 
 #Experiment Hyperparameters
-num_samples_start_end_score: int = 10_000 #10_000
-num_episodes_logging: int = 100 #100
-start_value_threshold: float = 0.8 #0.8
+mcsv_num_samples_start_end: int = 10_000 #10_000
+mcsv_num_samples_interval: int = 100 #100
+MCSV_threshold: float = 0.8 #0.8
 
 #For kth order methods
 k: int = 3
 
+
+#Use this variable to switch between NN-SUF and KO-SUF
 use_nn_suf: bool = True
 
 env = Maze()
-#env = Breakout()
 
 
 action_count = env.action_space.n
@@ -152,12 +169,12 @@ dummy_obs, dummy = env.reset()
 obs_size = len(dummy_obs)
 
 if use_nn_suf:
-    conv: NNSUF = NNSUF(state_size=state_size, obs_size=obs_size, action_count=action_count, epsilon=epsilon, hidden_layer_size=converter_hidden_layer_size)
+    conv: NNSUF = NNSUF(state_size=state_size, obs_size=obs_size, action_count=action_count, epsilon=epsilon, hidden_layer_size=nn_suf_hidden_layer_size)
 else:
     conv = KOSUF(k=k, obs_size=obs_size, action_count=action_count)
     state_size = conv.state_size
 
-agent: AgentREINFORCE = AgentREINFORCE(state_size=state_size, action_count=action_count, hidden_layer_size=agent_hidden_layer_size, discount_factor=discount, policy_lr=policy_lr)
+agent: AgentREINFORCE = AgentREINFORCE(state_size=state_size, action_count=action_count, hidden_layer_size=agent_hidden_layer_size, discount_factor=discount_factor, policy_lr=policy_lr)
 
 
 e = Experiment(env, conv, agent)
@@ -169,20 +186,20 @@ print("Obs size: ", obs_size)
 print("Compression ratio: ", (state_size + 1 + agent.action_count + conv.obs_size)/state_size)
 
 
-start_mcsv = e.get_MCSV(num_samples_start_end_score)
+start_mcsv = e.get_MCSV(mcsv_num_samples_start_end)
 print("Start MCSV: " + str(start_mcsv))
 
 
 
 start_time = time()
 
-e.run_experiment(num_iterations=num_converter_iterations, timesteps_per_iteration=interval, discount_factor=discount, epsilon=epsilon, mcsv_samples=num_episodes_logging, mcsv_threshold=start_value_threshold)
+e.run_experiment(num_iterations=num_converter_iterations, timesteps_per_iteration=interval, discount_factor=discount_factor, epsilon=epsilon, mcsv_samples=mcsv_num_samples_interval, mcsv_threshold=MCSV_threshold)
 end_time = time()
 
 if use_nn_suf:
     e.state_update_function.update_function_params = e.state_update_function.best_converter_params
 
-final_mcsv = e.get_MCSV(num_samples_start_end_score)
+final_mcsv = e.get_MCSV(mcsv_num_samples_start_end)
 
 print("Final MCSV: " + str(final_mcsv))
 print("Change in mean start value:", str(final_mcsv - start_mcsv))
