@@ -1,10 +1,15 @@
-import gymnasium as gym
-from gymnasium import spaces, Env
+from gymnasium import spaces
 import numpy as np
 
 class Maze:
+    """
+    Defines the Maze environment
+    """
 
     def __init__(self):
+        """
+        Initializes the Maze environment. Includes the structure of the maze.
+        """
 
         self.structure = [[1,1,1,1,1,1,1,1,1,1],
                           [1,2,0,0,0,0,1,1,0,1],
@@ -33,6 +38,13 @@ class Maze:
 
 
     def step(self, action: int):
+        """
+        Performs a single step in the environment and returns the response to the function caller
+
+        action: The action that the agent has chosen at the current state
+
+        Returns the tuple (observation, reward, done, None, None) which matches the gym interface
+        """
 
         delta_r: int = 0
         delta_c: int = 0
@@ -67,6 +79,11 @@ class Maze:
 
 
     def reset(self):
+        """
+        Resets the environment.
+
+        Returns the tuple (start obs, None)
+        """
         self.current_r = self.start_r
         self.current_c = self.start_c
 
@@ -75,7 +92,9 @@ class Maze:
         return self.get_obs(), None
 
     def get_obs(self):
-
+        """
+        Gets the observation vector from the environment state
+        """
         obs = np.zeros((12), dtype=self.type)
 
         index = self.structure[self.current_r - 1][self.current_c]
