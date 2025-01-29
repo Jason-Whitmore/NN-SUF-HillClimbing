@@ -5,9 +5,15 @@ import math
 dtype="float64"
 
 class Utility:
+    """
+    Defines important functions that are called statically in the rest of the program.
+    """
 
     @staticmethod
     def clone_list(l: "list[ndarray]") -> "list[ndarray]":
+        """
+        Clones the input list
+        """
         r = []
 
         for i in range(len(l)):
@@ -16,13 +22,21 @@ class Utility:
         return r
     
     @staticmethod
-    def copy_list(a: "list", b: "list"):
+    def clone_list(a: "list", b: "list"):
+        """
+        Clones list a and places result in b
+        """
         for i in range(len(a)):
             b[i] = np.copy(a[i])
 
 
     @staticmethod
     def scale_list(l: "list[ndarray]", scalar: float) -> "list[ndarray]":
+        """
+        Scales input list elements by the input scalar
+
+        Returns the scaled list
+        """
 
         for i in range(len(l)):
             l[i] *= scalar
@@ -31,6 +45,9 @@ class Utility:
 
     @staticmethod
     def add_list(a: "list[ndarray]", b: "list[ndarray]") -> "list[ndarray]":
+        """
+        Adds the contents of list a to list b and returns b
+        """
         for i in range(len(b)):
             b[i] += a[i]
 
@@ -38,6 +55,9 @@ class Utility:
 
     @staticmethod
     def clear_list(l: "list[ndarray]") -> "list[ndarray]":
+        """
+        Sets each list element to a zero array of the same shape and returns it
+        """
 
         for i in range(len(l)):
             l[i] = np.zeros(l[i].shape, dtype=dtype)
@@ -46,6 +66,11 @@ class Utility:
     
     @staticmethod
     def softmax(x: "ndarray"):
+        """
+        Performs the softmax activation function on the input array.
+
+        Returns the probability distribution
+        """
 
         sum: float = 0
 
@@ -61,6 +86,9 @@ class Utility:
     
     @staticmethod
     def tanh(x: "ndarray") -> "ndarray":
+        """
+        Performs the tanh activation function on the input array
+        """
         y: "ndarray" = np.zeros(len(x), dtype=dtype)
 
         for i in range(len(y)):
@@ -70,6 +98,9 @@ class Utility:
     
     @staticmethod
     def tanh_prime(x: "ndarray") -> "ndarray":
+        """
+        Performs the tanh activation function derivative on the input array
+        """
         y: "ndarray" = np.zeros(len(x), dtype=dtype)
 
         for i in range(len(y)):
@@ -80,15 +111,24 @@ class Utility:
     
     @staticmethod
     def hidden_activation(x: "ndarray") -> "ndarray":
+        """
+        Performs the hidden layer activation function
+        """
         return Utility.tanh(x)
 
     @staticmethod
     def hidden_activation_prime(x: "ndarray") -> "ndarray":
+        """
+        Performs the hidden layer activation function derivative
+        """
         return Utility.tanh_prime(x)
     
     
     @staticmethod
     def max_abs_value(x: "list[ndarray]") -> float:
+        """
+        Gets the largest absolute value of all components in the input array
+        """
 
         ret: float = 0
 
@@ -108,6 +148,9 @@ class Utility:
     
     @staticmethod
     def get_vector_length(x: "list[ndarray]") -> float:
+        """
+        Gets the euclidean length of the input vector (not the number of components)
+        """
 
         ret: float = 0
 
@@ -127,6 +170,10 @@ class Utility:
     
     @staticmethod
     def get_delta_vector_length(a: "list[ndarray]", b: "list[ndarray]") -> float:
+        """
+        Gets the vector length of the difference between the a and b vectors
+        """
+
         negative_b = Utility.scale_list(b, -1)
 
         delta = Utility.add_list(a, negative_b)
@@ -135,6 +182,9 @@ class Utility:
     
     @staticmethod
     def init_weights_xavier_uniform(w: "ndarray"):
+        """
+        Initializes the input weight matrix with uniform Xavier initialization.
+        """
 
         num_rows: int = len(w)
 
@@ -156,22 +206,18 @@ class Utility:
 
     @staticmethod
     def init_params_xavier_uniform(l: "list[ndarray]"):
+        """
+        Initializes the input list with uniform Xavier initialization.
+        """
 
         for i in range(len(l)):
             Utility.init_weights_xavier_uniform(l[i])
-
-    @staticmethod
-    def size_of_list_np_array(l: "list[ndarray]", unit_size: int) -> int:
-
-        s = 0
-
-        for i in range(len(l)):
-            s += np.prod(l[i].shape) * unit_size
-
-        return int(s)
     
     @staticmethod
     def get_list_shapes(l: "list[ndarray]") -> "list[Tuple]":
+        """
+        Returns the list of each element in the input array
+        """
         r = []
 
         for i in range(len(l)):
@@ -181,14 +227,15 @@ class Utility:
         return r
 
     @staticmethod
-    def add_to_queue(queue: list, item: float, max_len=3):
-        queue.append(item)
-
-        while len(queue) > max_len:
-            queue.pop(0)
-
-    @staticmethod
     def create_new_params(current_params, epsilon: float):
+        """
+        Returns new parameters that have small differences with the input parameters
+
+        current_params: The parameters that will be added to to create the new params. This input is not modified.
+
+        epsilon: Defines the boundaries for the changes to current params. Values uniformily distributed in [-epsilon, epsilon]
+        will be added to current_params and the new array is returned.
+        """
         new_params: "list[ndarray]" = Utility.clone_list(current_params)
 
 
