@@ -60,6 +60,16 @@ class NNSUF:
 
     
     def step(self, observation: "ndarray", action: int, reward: float, done: bool):
+        """
+        Performs the SUFs part of the interaction loop.
+
+        obs: The new observation
+        action: The previous action
+        reward: The previous reward
+        done: The signal that indicates if the episode is complete.
+
+        Returns the new state, reward, and the done signal
+        """
         
         state = self.update_function_predict(observation, reward, self.prev_state, self.prev_action)
 
