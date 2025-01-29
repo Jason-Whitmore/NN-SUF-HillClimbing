@@ -1,13 +1,16 @@
 import numpy as np
-from gymnasium import Env
-
-
 from Utility import Utility
 
 
 class NNSUF:
+    """
+    Defines the Neural Network State Update Function
+    """
 
     def __init__(self, state_size: int, obs_size: int, action_count: int, epsilon: float, hidden_layer_size: int):
+        """
+        Initializes the NN-SUF
+        """
         
         self.state_size: int = state_size
         self.epsilon: float = epsilon
@@ -32,6 +35,9 @@ class NNSUF:
         self.best_performance: float = float("-inf")
 
     def create_update_function_params(self) -> list["ndarray"]:
+        """
+        Creates the NN-SUF parameters.
+        """
         params = []
 
         #First layer
@@ -82,6 +88,12 @@ class NNSUF:
         
 
     def set_current_param_performance(self, current_performance: float):
+        """
+        Compares the current performance of the NN-SUF with the previous best performance.
+        If better, the current performance and NN-SUF parameters become the new best performance and parameters.
+
+        current_performance: Any selected objective function (example: MCSV)
+        """
 
         #Conduct test
         current_better: bool = current_performance > self.best_performance
@@ -96,6 +108,12 @@ class NNSUF:
 
     
     def create_new_params(self, epsilon: float):
+        """
+        Creates new parameters by cloning the existing parameters and adding small random values to each component.
+
+        epsilon: The bounds for the random values. These random values are selected from a random uniform
+        distribution in [-epsilon, epsilon]
+        """
         new_params: "list[ndarray]" = Utility.clone_list(self.best_converter_params)
 
 
@@ -111,11 +129,27 @@ class NNSUF:
         self.update_function_params = new_params
 
     def episode_end_reset(self):
+        """
+        Performs end of episode actions. This resets the previous state and action values to dummy values
+        """
         self.prev_state = np.zeros(self.state_size, dtype="float32") - 1
         self.prev_action = -1
 
 
     def update_function_predict(self, next_obs: "ndarray", reward: float, prev_state: "ndarray", prev_action: int) -> "ndarray":
+        """
+        Performs the feedforward pass of the NN-SUF.
+
+        next_obs: The next observation
+        
+        reward: The previous reward
+
+        prev_state: The previous state
+
+        prev_action: The previous action
+
+        Returns the new state
+        """
         
         x: "ndarray" = self.create_update_input_array(next_obs, reward, prev_state, prev_action)
         y: "ndarray" = None
@@ -132,10 +166,27 @@ class NNSUF:
 
         return np.array(y)
 
-    def get_start_state(self, start_obs) -> "ndarray":
+    def get_start_state(self, start_obs: "ndarray") -> "ndarray":
+        """
+        Returns the start state
+
+        start_obs: The starting observation
+        """
         return self.update_function_predict(start_obs, 0, self.prev_state, self.prev_action)
     
     def create_update_input_array(self, next_obs: "ndarray", reward: float, prev_state: "ndarray", prev_action: int) -> "ndarray":
+        """
+        Prepares and returns in input array for the NN-SUF
+
+        next_obs: The next observation
+
+        reward: The next reward
+
+        prev_state: The previous state
+
+        prev_action: The previous action
+        """
+
         input_size: int = self.obs_size + self.action_count + self.state_size + 1
 
         #Concatenate next observation and prev state into one array

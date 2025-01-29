@@ -132,13 +132,13 @@ class Experiment:
 
 
 #Experiment parameters
-num_converter_iterations: int = 50 #50 for nn-suf, 15 for kth order methods
+num_converter_iterations: int = 15 #50 for nn-suf, 15 for kth order methods
 
 #NN-SUF hyperparameters
-state_size: int = 50 #{1, 2, 3, 4, 5}, 3 for epsilon experiment
+state_size: int = 3 #{1, 2, 3, 4, 5}, 3 for epsilon experiment
 interval: int = 10 * 1000 * 1000 #10_000_000
 epsilon: float = 0 #{1e-1, 1e-2, 1e-3, 1e-4, 1e-5}, 1e-3 for state vector size experiment
-nn_suf_hidden_layer_size: int = 50 #30
+nn_suf_hidden_layer_size: int = 30 #30
 
 #Agent Hyperparameters
 agent_hidden_layer_size: int = 24 #24
@@ -151,11 +151,11 @@ mcsv_num_samples_interval: int = 100 #100
 MCSV_threshold: float = 0.8 #0.8
 
 #For kth order methods
-k: int = 3
+k: int = 1
 
 
 #Use this variable to switch between NN-SUF and KO-SUF
-use_nn_suf: bool = True
+use_nn_suf: bool = False
 
 env = Maze()
 
