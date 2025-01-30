@@ -20,14 +20,6 @@ class Utility:
             r.append(np.copy(l[i]))
 
         return r
-    
-    @staticmethod
-    def clone_list(a: "list", b: "list"):
-        """
-        Clones list a and places result in b
-        """
-        for i in range(len(a)):
-            b[i] = np.copy(a[i])
 
 
     @staticmethod
